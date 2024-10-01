@@ -25,12 +25,12 @@ from PySide6.QtGui import (
 
 
 class QoiViewer(QMainWindow):
-    def __init__(self, no_title_bar=False, qoi_path=None):
+    def __init__(self, title_bar=False, qoi_path=None):
         super().__init__()
         self.setWindowTitle("QOI Viewer")
         self.setAcceptDrops(True)
         self.current_qoi_path = None
-        if no_title_bar:
+        if not title_bar:
             self.setWindowFlags(Qt.FramelessWindowHint)
         self.image_label = QLabel(self)
         self.image_label.setAlignment(Qt.AlignCenter)
@@ -55,7 +55,7 @@ class QoiViewer(QMainWindow):
         self._resizing = False
         self._last_mouse_pos = None
         self.is_always_on_top = False
-        self._no_title_bar = no_title_bar
+        self._title_bar = title_bar
 
         self.shortcut_q = QShortcut(QKeySequence("Q"), self)
         self.shortcut_q.activated.connect(self.close)
@@ -193,7 +193,7 @@ class QoiViewer(QMainWindow):
             self.image_label.setAlignment(Qt.AlignCenter)
 
     def mousePressEvent(self, event: QMouseEvent):
-        if self._no_title_bar:
+        if not self._title_bar:
             if event.button() == Qt.LeftButton:
                 if self.moving_image:
                     self._dragging = True
@@ -261,21 +261,23 @@ class QoiViewer(QMainWindow):
             self._last_mouse_pos = None
 
     def mouseDoubleClickEvent(self, event: QMouseEvent):
-        if event.button() == Qt.LeftButton:
+        if event.button() == Qt.LeftButton or event.button() == Qt.RightButton:
             if self.isMaximized():
                 self.showNormal()
-                self.zoom_factor = 1.0
                 self.update_image_size()
             else:
+                self.original_size = self.size()
                 self.showMaximized()
+                QApplication.instance().processEvents()
                 self.zoom_to_fit()
 
     def zoom_to_fit(self):
-        if self.pixmap:
-            self.zoom_factor = min(
-                self.width() / self.pixmap.width(), self.height() / self.pixmap.height()
-            )
-            self.update_image_size()
+        if self.isMaximized():
+            aspect_ratio = self.pixmap.width() / self.pixmap.height()
+            if self.width() / self.height() > aspect_ratio:
+                self.resize(self.height() * aspect_ratio, self.height())
+            else:
+                self.resize(self.original_size)
 
     def toggle_image_lock(self):
         self.image_locked = not self.image_locked
@@ -324,11 +326,11 @@ class QoiViewer(QMainWindow):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
 
-    no_title_bar = "--notitle" in sys.argv
+    title_bar = "--title" in sys.argv
     qoi_path = None
     if len(sys.argv) > 1 and not sys.argv[1].startswith("-"):
         qoi_path = sys.argv[1]
 
-    viewer = QoiViewer(no_title_bar=no_title_bar, qoi_path=qoi_path)
+    viewer = QoiViewer(title_bar=title_bar, qoi_path=qoi_path)
     viewer.show()
     sys.exit(app.exec())
