@@ -19,6 +19,7 @@ from PySide6.QtGui import (
     QDropEvent,
     QMouseEvent,
     QKeySequence,
+    QGuiApplication,
     QWheelEvent,
     QPainter,
 )
@@ -87,6 +88,15 @@ class QoiViewer(QMainWindow):
         if qoi_path:
             self.load_qoi_image(qoi_path)
             self.update_image_list(qoi_path)
+
+        screens = QGuiApplication.screens()
+        if screens:
+            primary_screen = screens[0]
+            screen_geometry = primary_screen.availableGeometry()
+            default_height = int(screen_geometry.height() * 0.5)
+            aspect_ratio = self.pixmap.width() / self.pixmap.height()
+            default_width = int(default_height * aspect_ratio)
+            self.resize(default_width, default_height)
 
     def dragEnterEvent(self, event: QDropEvent):
         if event.mimeData().hasUrls():
