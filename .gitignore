@@ -1,0 +1,6 @@
+*.spec
+__pycache__
+build/
+dist/
+
+# pyinstaller main.py --noconfirm --name qoi_viewer --noconsole --disable-windowed-traceback --onefile -i icon.jpg

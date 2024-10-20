@@ -1,0 +1,3 @@
+[submodule "qoithon"]
+	path = qoithon
+	url = https://github.com/fluffyloopy/qoithon
